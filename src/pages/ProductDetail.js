@@ -25,15 +25,25 @@ function ProductDetail() {
   };
 
   const addToCart = async () => {
+    if (quantity > product.stock) {
+      alert('在庫数が足りません。');
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:4000/api/cart', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({productId: product.id, quantity})
       });
-      await response.json();
-      alert('商品がカートに追加されました');
-
+      if (response.ok) {
+        alert('商品がカートに追加されました');
+      } else {
+        const data = await response.json();
+        alert(data.message);
+        product.stock = data.stock;
+        setQuantity(1);
+      }
     } catch(error) {
       console.error('カートへの追加エラー:', error);
     }
@@ -44,7 +54,14 @@ function ProductDetail() {
   return (
     <div>
       <h2>{product.name}</h2>
-      <p>価格: {product.price}円</p>
+      <p>
+        価格: {product.price}円
+        {product.stock <= 0 ? (
+          <span style={{'color': 'red'}}> 売り切れ</span>
+        ) : product.stock <= 10 ? (
+          <span>（残り{product.stock}個）</span>
+        ) : null}
+      </p>
       <p>{product.description}</p>
       <label>数量: </label>
       <input 
@@ -52,9 +69,10 @@ function ProductDetail() {
         value={quantity} 
         onChange={handleQuantityChange} 
         min="1" 
-        max="99" 
+        max={product.stock} 
+        disabled={product.stock <= 0}
       />
-      <button onClick={addToCart}>カートに追加</button>
+      <button onClick={addToCart} disabled={product.stock <= 0}>カートに追加</button>
     </div>
   );
 }

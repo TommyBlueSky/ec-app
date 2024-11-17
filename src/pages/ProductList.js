@@ -23,7 +23,14 @@ function ProductList() {
       {products.map(product => (
         <div key={product.id}>
           <h3>{product.name}</h3>
-          <p>{product.price}円</p>
+          <p>
+            {product.price}円
+            {product.stock <= 0 ? (
+              <span style={{'color': 'red'}}> 売り切れ</span>
+            ) : product.stock <= 10 ? (
+              <span>（残り{product.stock}個）</span>
+            ) : null}
+          </p>
           <Link to={`/product/${product.id}`}>詳細を見る</Link>
         </div>
       ))}

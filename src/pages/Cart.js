@@ -5,6 +5,7 @@ function Cart() {
   const [cart, setCart] = useState([]);  // カート内の商品
   const [products, setProducts] = useState([]);  // 商品情報
   const [totalAmount, setTotalAmount] = useState(0);  // 合計金額
+  const [isOrderError, setIsOrderError] = useState(false);  // 注文確定ボタンの可否
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,6 +25,10 @@ function Cart() {
         // 初期の合計金額を計算
         const total = calculateTotalAmount(cartData, productsData);
         setTotalAmount(total);
+
+        // 在庫確認の処理
+        const outOfStock = checkStockItems(cartData, productsData);
+        setIsOrderError(outOfStock);
       } catch (error) {
         console.error('カートの取得エラー:', error);
       }
@@ -38,6 +43,14 @@ function Cart() {
       const product = productsList.find(p => p.id === item.productId);
       return sum + (product ? product.price * item.quantity : 0);
     }, 0);
+  };
+
+  // 在庫確認の関数
+  const checkStockItems = (cartItems, productsList) => {
+    return cartItems.some(item => {
+      const product = productsList.find(p => p.id === item.productId);
+      return product && product.stock < item.quantity;
+    });
   };
 
   const removeFromCart = async (productId) => {
@@ -55,6 +68,9 @@ function Cart() {
         // 合計金額を再計算
         const total = calculateTotalAmount(updatedCart, products);
         setTotalAmount(total);
+        // 在庫確認の処理
+        const outOfStock = checkStockItems(updatedCart, products);
+        setIsOrderError(outOfStock);
       } else {
         alert('商品削除に失敗しました');
       }
@@ -78,7 +94,8 @@ function Cart() {
         setTotalAmount(0);
         navigate('/');
       } else {
-        alert('注文に失敗しました');
+        const data = await response.json();
+        alert(data.message);
       }
     } catch (error) {
       console.error('注文の確定エラー:', error);
@@ -97,7 +114,15 @@ function Cart() {
             const product = products.find(p => p.id === item.productId);
             return product ? (
               <div key={item.productId}>
-                <p>{product.name} - {item.quantity} 個</p>
+                <p>{product.name} - {item.quantity} 個
+                  {product.stock <= 0 ? (
+                    <span style={{'color': 'red'}}>（売り切れ）</span>
+                  ) : product.stock <= 10 && product.stock >= item.quantity ? (
+                    <span>（残り{product.stock}個）</span>
+                  ) : product.stock < item.quantity ? (
+                    <span style={{'color': 'red'}}>（在庫不足 残り{product.stock}個）</span>
+                  ) : null}
+                </p>
                 <p>合計: {product.price * item.quantity}円</p>
                 <button onClick={() => removeFromCart(item.productId)}>削除</button>
               </div>
@@ -106,7 +131,12 @@ function Cart() {
             );
           })}
           <h3>合計金額: {totalAmount}円</h3>
-          <button onClick={placeOrder}>注文を確定</button>
+          <button onClick={placeOrder} disabled={isOrderError}>注文を確定</button>
+          {isOrderError && (
+            <p style={{ color: 'red' }}>
+              売り切れまたは在庫不足の商品があります。対象商品を削除して注文を確定してください。
+            </p>
+          )}
         </div>
       )}
     </div>
