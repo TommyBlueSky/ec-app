@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Cart() {
+function Cart({checkUser, user}) {
   const [cart, setCart] = useState([]);  // カート内の商品
   const [products, setProducts] = useState([]);  // 商品情報
   const [totalAmount, setTotalAmount] = useState(0);  // 合計金額
@@ -18,7 +18,8 @@ function Cart() {
         setProducts(productsData);
 
         // カートの情報をバックエンドから取得
-        const cartResponse = await fetch('http://localhost:4000/api/cart');
+        const returnCheckUser = await checkUser('cartComponent');
+        const cartResponse = await fetch(`http://localhost:4000/api/cart/${returnCheckUser.userId}`);
         const cartData = await cartResponse.json();
         setCart(cartData);
 
@@ -35,6 +36,7 @@ function Cart() {
     };
 
     fetchData();
+    if (!user) return;
   }, []);
 
   // 合計金額を計算する関数
@@ -53,17 +55,17 @@ function Cart() {
     });
   };
 
-  const removeFromCart = async (productId) => {
+  const removeFromCart = async (cartId) => {
     try {
       // カートから商品を削除するAPI呼び出し
       const response = await fetch('http://localhost:4000/api/cart', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId })
+        body: JSON.stringify({ cartId })
       });
       if (response.ok) {
         // 削除後のカートデータを再取得
-        const updatedCart = cart.filter(item => item.productId !== productId);
+        const updatedCart = cart.filter(item => item.cartId !== cartId);
         setCart(updatedCart);
         // 合計金額を再計算
         const total = calculateTotalAmount(updatedCart, products);
@@ -85,7 +87,7 @@ function Cart() {
       const response = await fetch('http://localhost:4000/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cart, totalAmount })
+        body: JSON.stringify({ user, cart, totalAmount })
       });
       if (response.ok) {
         const data = await response.json();
@@ -101,7 +103,7 @@ function Cart() {
       console.error('注文の確定エラー:', error);
     }
   };
-
+  
   return (
     <div>
       <h2>カート</h2>
@@ -124,7 +126,7 @@ function Cart() {
                   ) : null}
                 </p>
                 <p>合計: {product.price * item.quantity}円</p>
-                <button onClick={() => removeFromCart(item.productId)}>削除</button>
+                <button onClick={() => removeFromCart(item.cartId)}>削除</button>
               </div>
             ) : (
               <div key={item.productId}>商品が見つかりません</div>

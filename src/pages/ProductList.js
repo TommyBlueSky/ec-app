@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-function ProductList() {
+function ProductList({checkUser}) {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
@@ -15,6 +15,7 @@ function ProductList() {
       }
     }
     fetchData();
+    checkUser();
   }, []);
 
   return (

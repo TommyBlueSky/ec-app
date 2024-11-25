@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-function ProductDetail() {
+function ProductDetail({checkUser, user}) {
   const { productId } = useParams();  // URLパラメータから商品IDを取得
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -25,6 +25,9 @@ function ProductDetail() {
   };
 
   const addToCart = async () => {
+    checkUser('ProductDetailComponent');
+    if (!user) return;
+    
     if (quantity > product.stock) {
       alert('在庫数が足りません。');
       return;
@@ -34,7 +37,7 @@ function ProductDetail() {
       const response = await fetch('http://localhost:4000/api/cart', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({productId: product.id, quantity})
+        body: JSON.stringify({userId: user.userId, productId: product.id, quantity})
       });
       if (response.ok) {
         alert('商品がカートに追加されました');
@@ -63,15 +66,16 @@ function ProductDetail() {
         ) : null}
       </p>
       <p>{product.description}</p>
-      <label>数量: </label>
-      <input 
-        type="number" 
-        value={quantity} 
-        onChange={handleQuantityChange} 
-        min="1" 
-        max={product.stock} 
-        disabled={product.stock <= 0}
-      />
+      <label>数量: 
+        <input 
+          type="number" 
+          value={quantity} 
+          onChange={handleQuantityChange} 
+          min="1" 
+          max={product.stock} 
+          disabled={product.stock <= 0}
+        />
+      </label>
       <button onClick={addToCart} disabled={product.stock <= 0}>カートに追加</button>
     </div>
   );
