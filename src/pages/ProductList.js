@@ -22,7 +22,7 @@ function ProductList({checkUser}) {
     <div>
       <h2>商品一覧</h2>
       {products.map(product => (
-        <div key={product.id}>
+        <div key={product.product_id}>
           <h3>{product.name}</h3>
           <p>
             {product.price}円
@@ -32,7 +32,7 @@ function ProductList({checkUser}) {
               <span>（残り{product.stock}個）</span>
             ) : null}
           </p>
-          <Link to={`/product/${product.id}`}>詳細を見る</Link>
+          <Link to={`/product/${product.product_id}`}>詳細を見る</Link>
         </div>
       ))}
     </div>

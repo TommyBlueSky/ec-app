@@ -37,7 +37,7 @@ function ProductDetail({checkUser, user}) {
       const response = await fetch('http://localhost:4000/api/cart', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({userId: user.userId, productId: product.id, quantity})
+        body: JSON.stringify({user_id: user.user_id, product_id: product.product_id, quantity})
       });
       if (response.ok) {
         alert('商品がカートに追加されました');

@@ -19,7 +19,7 @@ function Cart({checkUser, user}) {
 
         // カートの情報をバックエンドから取得
         const returnCheckUser = await checkUser('cartComponent');
-        const cartResponse = await fetch(`http://localhost:4000/api/cart/${returnCheckUser.userId}`);
+        const cartResponse = await fetch(`http://localhost:4000/api/cart/${returnCheckUser.user_id}`);
         const cartData = await cartResponse.json();
         setCart(cartData);
 
@@ -42,7 +42,7 @@ function Cart({checkUser, user}) {
   // 合計金額を計算する関数
   const calculateTotalAmount = (cartItems, productsList) => {
     return cartItems.reduce((sum, item) => {
-      const product = productsList.find(p => p.id === item.productId);
+      const product = productsList.find(p => p.product_id === item.product_id);
       return sum + (product ? product.price * item.quantity : 0);
     }, 0);
   };
@@ -50,7 +50,7 @@ function Cart({checkUser, user}) {
   // 在庫確認の関数
   const checkStockItems = (cartItems, productsList) => {
     return cartItems.some(item => {
-      const product = productsList.find(p => p.id === item.productId);
+      const product = productsList.find(p => p.product_id === item.product_id);
       return product && product.stock < item.quantity;
     });
   };
@@ -65,7 +65,7 @@ function Cart({checkUser, user}) {
       });
       if (response.ok) {
         // 削除後のカートデータを再取得
-        const updatedCart = cart.filter(item => item.cartId !== cartId);
+        const updatedCart = cart.filter(item => item.cart_id !== cartId);
         setCart(updatedCart);
         // 合計金額を再計算
         const total = calculateTotalAmount(updatedCart, products);
@@ -91,7 +91,7 @@ function Cart({checkUser, user}) {
       });
       if (response.ok) {
         const data = await response.json();
-        alert(`注文が完了しました！ 注文ID: ${data.orderId}`);
+        alert(`注文が完了しました！ 注文ID: ${data.order_id}`);
         setCart([]);
         setTotalAmount(0);
         navigate('/');
@@ -113,9 +113,9 @@ function Cart({checkUser, user}) {
         <div>
           <h3>カートに入っている商品</h3>
           {cart.map((item) => {
-            const product = products.find(p => p.id === item.productId);
+            const product = products.find(p => p.product_id === item.product_id);
             return product ? (
-              <div key={item.productId}>
+              <div key={item.product_id}>
                 <p>{product.name} - {item.quantity} 個
                   {product.stock <= 0 ? (
                     <span style={{'color': 'red'}}>（売り切れ）</span>
@@ -126,10 +126,10 @@ function Cart({checkUser, user}) {
                   ) : null}
                 </p>
                 <p>合計: {product.price * item.quantity}円</p>
-                <button onClick={() => removeFromCart(item.cartId)}>削除</button>
+                <button onClick={() => removeFromCart(item.cart_id)}>削除</button>
               </div>
             ) : (
-              <div key={item.productId}>商品が見つかりません</div>
+              <div key={item.product_id}>商品が見つかりません</div>
             );
           })}
           <h3>合計金額: {totalAmount}円</h3>
